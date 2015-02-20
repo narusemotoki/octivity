@@ -1,0 +1,67 @@
+- name: Use UTF-8
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: Make sure the system encoding is utf-8
+      template: src=templates/locale dest=/etc/default/locale owner=root group=root mode=644
+
+- name: Install packages via APT
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: Install
+      apt: pkg={{ item }} update_cache=yes state=latest
+      with_items:
+        - virtualenvwrapper
+        - nginx
+        - postgresql
+        - postgresql-client
+        - postgresql-contrib
+        - postgresql-server-dev-9.3
+
+- name: Set up PostgreSQL
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: Make cluster
+      ignore_errors: yes
+      command: pg_createcluster --start -e UTF-8 9.3 main
+    - name: replace config
+      action: template src=templates/pg_hba.conf dest=/etc/postgresql/9.3/main/pg_hba.conf
+    - name: restart
+      action: service name=postgresql state=restarted
+    - name: set password
+      command: psql -U postgres -c "ALTER ROLE postgres WITH PASSWORD 'postgres';"
+    - name: create db
+      sudo: no
+      ignore_errors: yes
+      command: psql -U postgres -c "CREATE DATABASE octivity ENCODING 'UTF8';"
+
+- name: Set up Python
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: Replace setting file of bash
+      sudo: no
+      action: template src=templates/bashrc dest=/home/vagrant/.bashrc
+    - name: virtualenv environment
+      sudo: no
+      shell: bash -c 'source /etc/bash_completion.d/virtualenvwrapper && mkvirtualenv octivity -p /usr/bin/python3'
+    - name: pip install
+      ignore_errors: yes
+      sudo: no
+      shell: bash -c 'source /etc/bash_completion.d/virtualenvwrapper && workon octivity && pip install -r /srv/octivity/requirements.txt'
+
+- name: Set up nginx
+  hosts: vagrant
+  user: vagrant
+  sudo: yes
+  tasks:
+    - name: Replace setting file
+      action: template src=templates/nginx_default dest=/etc/nginx/sites-available/default
+    - name: restart
+      action: service name=nginx state=restarted
