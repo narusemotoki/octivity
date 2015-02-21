@@ -15,6 +15,7 @@
       apt: pkg={{ item }} update_cache=yes state=latest
       with_items:
         - virtualenvwrapper
+        - python3-dev
         - nginx
         - postgresql
         - postgresql-client

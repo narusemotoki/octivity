@@ -3,7 +3,7 @@ server {
     client_max_body_size 10M;
 
     location /static/ {
-        root /srv/;
+        root /srv/octivity/src/app/;
     }
 
     location / {

@@ -1,0 +1,19 @@
+language: python
+
+python:
+  - "3.4"
+
+sudo: false
+
+addons:
+  postgresql: "9.3"
+
+install:
+  ./setup.py develop
+
+before_script:
+  - ./setup.py flake8
+  - createdb -U postgres -E UTF8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8 octivity
+
+script:
+  ./setup.py nosetests
