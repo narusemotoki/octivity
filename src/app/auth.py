@@ -7,7 +7,6 @@ from .models import User
 
 
 def login_user(strategy, user, user_social_auth):
-    print(dir(strategy.strategy))
     strategy.strategy.session_set('user_id', user.id)
 
 
