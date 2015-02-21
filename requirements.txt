@@ -11,3 +11,4 @@ nose
 rednose
 flake8
 coverage
+python-social-auth
